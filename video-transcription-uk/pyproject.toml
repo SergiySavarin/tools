@@ -1,0 +1,16 @@
+[project]
+name = "uk-transcribe"
+version = "0.1.0"
+description = "Локальна українська транскрипція відео в Markdown із таймкодами"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "faster-whisper>=1.2,<2",
+]
+
+[project.scripts]
+uk-transcribe = "uk_transcribe:main"
+
+[build-system]
+requires = ["uv_build>=0.12.18,<0.13"]
+build-backend = "uv_build"
