@@ -9,7 +9,7 @@ dependencies = [
 ]
 
 [project.scripts]
-uk-transcribe = "uk_transcribe:main"
+uk-transcribe = "uk_transcribe.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.12.18,<0.13"]
