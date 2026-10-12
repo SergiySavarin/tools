@@ -21,11 +21,17 @@ def timestamp(seconds: float) -> str:
 
 def arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Транскрибувати відео українською у Markdown із таймкодами."
+        description="Транскрибувати відео українською з таймкодами."
     )
     parser.add_argument("video", type=Path, help="Шлях до відео або аудіофайлу")
     parser.add_argument(
-        "-o", "--output", type=Path, help="Шлях до .md (типово: поруч із відео)"
+        "-o", "--output", type=Path, help="Шлях до результату (типово: поруч із відео)"
+    )
+    parser.add_argument(
+        "--format",
+        choices=("markdown", "plain"),
+        default="markdown",
+        help="Формат результату: markdown або plain для вставки в Notion (типово: markdown)",
     )
     parser.add_argument(
         "--model",
@@ -43,6 +49,21 @@ def arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def transcript_header(source: Path, language_probability: float, output_format: str) -> list[str]:
+    """Повертає заголовок результату для обраного формату."""
+    if output_format == "plain":
+        return []
+    return [
+        f"# Транскрипція: {source.stem}",
+        "",
+        f"- Мова: українська ({language_probability:.0%} впевненість моделі)",
+        f"- Джерело: `{source.name}`",
+        "",
+        "## Таймкоди",
+        "",
+    ]
+
+
 def main() -> int:
     args = arguments()
     source = args.video.expanduser().resolve()
@@ -50,7 +71,8 @@ def main() -> int:
         print(f"Помилка: файл не знайдено: {source}", file=sys.stderr)
         return 2
 
-    output = args.output.expanduser().resolve() if args.output else source.with_suffix(".md")
+    default_extension = ".md" if args.format == "markdown" else ".txt"
+    output = args.output.expanduser().resolve() if args.output else source.with_suffix(default_extension)
     output.parent.mkdir(parents=True, exist_ok=True)
 
     # int8 добре підходить для локальної роботи на CPU та Apple Silicon.
@@ -67,20 +89,15 @@ def main() -> int:
         condition_on_previous_text=True,
     )
 
-    lines = [
-        f"# Транскрипція: {source.stem}",
-        "",
-        f"- Мова: українська ({info.language_probability:.0%} впевненість моделі)",
-        f"- Джерело: `{source.name}`",
-        "",
-        "## Таймкоди",
-        "",
-    ]
+    lines = transcript_header(source, info.language_probability, args.format)
     count = 0
     for segment in segments:
         text = segment.text.strip()
         if text:
-            lines.append(f"- **{timestamp(segment.start)}** — {text}")
+            if args.format == "plain":
+                lines.append(f"{timestamp(segment.start)} — {text}")
+            else:
+                lines.append(f"- **{timestamp(segment.start)}** — {text}")
             count += 1
 
     output.write_text("\n".join(lines) + "\n", encoding="utf-8")
