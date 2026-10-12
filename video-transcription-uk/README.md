@@ -38,7 +38,7 @@ uv run uk-transcribe "/шлях/до/відео.mp4" --format plain
 brew install uv ffmpeg
 pyenv install 3.13.11
 pyenv local 3.13.11
-cd "/Users/gru/Documents/ChatGPT/Zona support/video-transcription-uk"
+cd video-transcription-uk
 uv sync
 ```
 
@@ -47,7 +47,7 @@ uv sync
 ## Запуск
 
 ```bash
-cd "/Users/gru/Documents/ChatGPT/Zona support/video-transcription-uk"
+cd video-transcription-uk
 uv run uk-transcribe "/шлях/до/відео.mp4"
 ```
 
